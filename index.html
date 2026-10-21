@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>वादनानि</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts for Traditional Vibe -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tiro+Devanagari+Hindi:ital@0;1&family=Cinzel:wght@500;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Cinzel', 'serif'],
+                        devanagari: ['"Tiro Devanagari Hindi"', 'serif'],
+                    },
+                    colors: {
+                        saffron: {
+                            50: '#fffcf2',
+                            100: '#fff7e0',
+                            200: '#ffebb3',
+                            300: '#ffd980',
+                            400: '#ffc24d',
+                            500: '#ffa600',
+                            600: '#e68a00',
+                            700: '#b36b00',
+                            800: '#804c00',
+                            900: '#4d2d00',
+                        },
+                        maroon: {
+                            800: '#7f1d1d',
+                            900: '#450a0a',
+                        }
+                    },
+                    boxShadow: {
+                        'traditional': '0 10px 25px -5px rgba(127, 29, 29, 0.2), 0 8px 10px -6px rgba(127, 29, 29, 0.1)',
+                        'inner-glow': 'inset 0 0 20px rgba(255, 166, 0, 0.15)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #fffcf2;
+            background-image: radial-gradient(#ffd980 1px, transparent 1px);
+            background-size: 30px 30px;
+        }
+        
+        .clock-mark {
+            position: absolute;
+            width: 4px;
+            height: 12px;
+            background-color: #7f1d1d;
+            left: 50%;
+            transform-origin: 50% 120px; /* 120px is half the clock width minus padding */
+            margin-left: -2px;
+            border-radius: 2px;
+        }
+        
+        .clock-number {
+            position: absolute;
+            font-family: 'Cinzel', serif;
+            color: #450a0a;
+            font-weight: 700;
+            font-size: 1.25rem;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Smooth transition for hands */
+        #hour-hand, #minute-hand {
+            transition: transform 0.4s cubic-bezier(0.4, 2.08, 0.55, 0.44);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 text-gray-800">
+
+    <div class="max-w-md w-full mx-auto flex flex-col items-center">
+        <!-- Header -->
+        <div class="text-center mb-6 sm:mb-8">
+            <h1 class="text-4xl sm:text-5xl font-devanagari text-maroon-900 font-bold tracking-wider mb-2">वादनानि</h1>
+            <p class="text-saffron-700 font-medium text-sm sm:text-base">Learn to tell time in Sanskrit</p>
+        </div>
+
+        <!-- Clock Interface -->
+        <div class="relative w-full flex flex-col items-center bg-white p-4 sm:p-8 rounded-3xl shadow-traditional border border-saffron-200 z-10">
+            
+            <!-- Analog Clock -->
+            <div id="clock-container" class="relative w-64 h-64 sm:w-72 sm:h-72 rounded-full border-8 border-saffron-400 bg-saffron-50 shadow-inner-glow cursor-pointer touch-none mb-8 flex items-center justify-center transition-transform hover:scale-[1.02]" title="Click near 12, 3, 6, or 9 to snap to minutes">
+                <!-- Center Dot -->
+                <div class="absolute w-4 h-4 bg-maroon-900 rounded-full z-20 shadow-md ring-2 ring-saffron-300"></div>
+                
+                <!-- Hour Hand -->
+                <div id="hour-hand" class="absolute w-2 h-16 sm:h-20 bg-maroon-800 rounded-full z-10" style="bottom: 50%; transform-origin: bottom center;"></div>
+                
+                <!-- Minute Hand -->
+                <div id="minute-hand" class="absolute w-1.5 h-24 sm:h-28 bg-saffron-600 rounded-full z-10 shadow-sm" style="bottom: 50%; transform-origin: bottom center;"></div>
+
+                <!-- Clock Numbers -->
+                <div class="clock-number" style="top: 12%; left: 50%;">12</div>
+                <div class="clock-number" style="top: 50%; left: 88%;">3</div>
+                <div class="clock-number" style="top: 88%; left: 50%;">6</div>
+                <div class="clock-number" style="top: 50%; left: 12%;">9</div>
+
+                <!-- Small ticks for 15 min marks -->
+                <div class="absolute w-full h-full rounded-full" id="ticks-container">
+                    <!-- Ticks populated via JS -->
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="flex items-center justify-between w-full gap-2 sm:gap-4 mb-6">
+                <button id="prev-btn" class="flex-1 bg-saffron-100 hover:bg-saffron-200 text-maroon-900 font-semibold py-3 px-2 sm:px-4 rounded-xl transition-colors shadow-sm flex items-center justify-center gap-1 sm:gap-2 border border-saffron-300 active:scale-95 text-xs sm:text-base">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sm:w-5 sm:h-5"><path d="m15 18-6-6 6-6"/></svg>
+                    -15 Min
+                </button>
+                <div class="flex flex-col items-center px-2 sm:px-4">
+                    <span id="digital-time" class="text-xl sm:text-2xl font-bold font-sans text-maroon-900">12:00</span>
+                </div>
+                <button id="next-btn" class="flex-1 bg-saffron-100 hover:bg-saffron-200 text-maroon-900 font-semibold py-3 px-2 sm:px-4 rounded-xl transition-colors shadow-sm flex items-center justify-center gap-1 sm:gap-2 border border-saffron-300 active:scale-95 text-xs sm:text-base">
+                    +15 Min
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sm:w-5 sm:h-5"><path d="m9 18 6-6-6-6"/></svg>
+                </button>
+            </div>
+
+            <!-- Data Display Card -->
+            <div class="w-full bg-gradient-to-br from-saffron-50 to-white rounded-2xl p-4 sm:p-6 border-t-4 border-maroon-800 text-center shadow-md">
+                <p id="english-desc" class="text-xs sm:text-sm uppercase tracking-widest text-saffron-700 font-semibold mb-2 sm:mb-3">12:00</p>
+                <h2 id="sanskrit-text" class="text-3xl sm:text-4xl md:text-5xl font-devanagari text-maroon-900 mb-2 leading-tight py-2">द्वादशवादनम्</h2>
+            </div>
+            
+        </div>
+    </div>
+
+    <script>
+        const timeData = [
+          { "hour": "12:00", "english": "12:00", "sanskrit": "द्वादशवादनम्" },
+          { "hour": "12:15", "english": "Quarter past 12", "sanskrit": "सपाद-द्वादशवादनम्" },
+          { "hour": "12:30", "english": "Half past 12", "sanskrit": "सार्ध-द्वादशवादनम्" },
+          { "hour": "12:45", "english": "Quarter to 1", "sanskrit": "पादोन-एकवादनम्" },
+          { "hour": "1:00", "english": "1:00", "sanskrit": "एकवादनम्" },
+          { "hour": "1:15", "english": "Quarter past 1", "sanskrit": "सपाद-एकवादनम्" },
+          { "hour": "1:30", "english": "Half past 1", "sanskrit": "सार्ध-एकवादनम्" },
+          { "hour": "1:45", "english": "Quarter to 2", "sanskrit": "पादोन-द्विवादनम्" },
+          { "hour": "2:00", "english": "2:00", "sanskrit": "द्विवादनम्" },
+          { "hour": "2:15", "english": "Quarter past 2", "sanskrit": "सपाद-द्विवादनम्" },
+          { "hour": "2:30", "english": "Half past 2", "sanskrit": "सार्ध-द्विवादनम्" },
+          { "hour": "2:45", "english": "Quarter to 3", "sanskrit": "पादोन-त्रिवादनम्" },
+          { "hour": "3:00", "english": "3:00", "sanskrit": "त्रिवादनम्" },
+          { "hour": "3:15", "english": "Quarter past 3", "sanskrit": "सपाद-त्रिवादनम्" },
+          { "hour": "3:30", "english": "Half past 3", "sanskrit": "सार्ध-त्रिवादनम्" },
+          { "hour": "3:45", "english": "Quarter to 4", "sanskrit": "पादोन-चतुर्वादनम्" },
+          { "hour": "4:00", "english": "4:00", "sanskrit": "चतुर्वादनम्" },
+          { "hour": "4:15", "english": "Quarter past 4", "sanskrit": "सपाद-चतुर्वादनम्" },
+          { "hour": "4:30", "english": "Half past 4", "sanskrit": "सार्ध-चतुर्वादनम्" },
+          { "hour": "4:45", "english": "Quarter to 5", "sanskrit": "पादोन-पञ्चवादनम्" },
+          { "hour": "5:00", "english": "5:00", "sanskrit": "पञ्चवादनम्" },
+          { "hour": "5:15", "english": "Quarter past 5", "sanskrit": "सपाद-पञ्चवादनम्" },
+          { "hour": "5:30", "english": "Half past 5", "sanskrit": "सार्ध-पञ्चवादनम्" },
+          { "hour": "5:45", "english": "Quarter to 6", "sanskrit": "पादोन-षड्वादनम्" },
+          { "hour": "6:00", "english": "6:00", "sanskrit": "षड्वादनम्" },
+          { "hour": "6:15", "english": "Quarter past 6", "sanskrit": "सपाद-षड्वादनम्" },
+          { "hour": "6:30", "english": "Half past 6", "sanskrit": "सार्ध-षड्वादनम्" },
+          { "hour": "6:45", "english": "Quarter to 7", "sanskrit": "पादोन-सप्तवादनम्" },
+          { "hour": "7:00", "english": "7:00", "sanskrit": "सप्तवादनम्" },
+          { "hour": "7:15", "english": "Quarter past 7", "sanskrit": "सपाद-सप्तवादनम्" },
+          { "hour": "7:30", "english": "Half past 7", "sanskrit": "सार्ध-सप्तवादनम्" },
+          { "hour": "7:45", "english": "Quarter to 8", "sanskrit": "पादोन-अष्टवादनम्" },
+          { "hour": "8:00", "english": "8:00", "sanskrit": "अष्टवादनम्" },
+          { "hour": "8:15", "english": "Quarter past 8", "sanskrit": "सपाद-अष्टवादनम्" },
+          { "hour": "8:30", "english": "Half past 8", "sanskrit": "सार्ध-अष्टवादनम्" },
+          { "hour": "8:45", "english": "Quarter to 9", "sanskrit": "पादोन-नववादनम्" },
+          { "hour": "9:00", "english": "9:00", "sanskrit": "नववादनम्" },
+          { "hour": "9:15", "english": "Quarter past 9", "sanskrit": "सपाद-नववादनम्" },
+          { "hour": "9:30", "english": "Half past 9", "sanskrit": "सार्ध-नववादनम्" },
+          { "hour": "9:45", "english": "Quarter to 10", "sanskrit": "पादोन-दशवादनम्" },
+          { "hour": "10:00", "english": "10:00", "sanskrit": "दशवादनम्" },
+          { "hour": "10:15", "english": "Quarter past 10", "sanskrit": "सपाद-दशवादनम्" },
+          { "hour": "10:30", "english": "Half past 10", "sanskrit": "सार्ध-दशवादनम्" },
+          { "hour": "10:45", "english": "Quarter to 11", "sanskrit": "पादोन-एकादशवादनम्" },
+          { "hour": "11:00", "english": "11:00", "sanskrit": "एकादशवादनम्" },
+          { "hour": "11:15", "english": "Quarter past 11", "sanskrit": "सपाद-एकादशवादनम्" },
+          { "hour": "11:30", "english": "Half past 11", "sanskrit": "सार्ध-एकादशवादनम्" },
+          { "hour": "11:45", "english": "Quarter to 12", "sanskrit": "पादोन-द्वादशवादनम्" }
+        ];
+
+        let currentIndex = 0; // Starts at 12:00
+
+        // DOM Elements
+        const hourHand = document.getElementById('hour-hand');
+        const minuteHand = document.getElementById('minute-hand');
+        const digitalTime = document.getElementById('digital-time');
+        const englishDesc = document.getElementById('english-desc');
+        const sanskritText = document.getElementById('sanskrit-text');
+        const clockContainer = document.getElementById('clock-container');
+        const ticksContainer = document.getElementById('ticks-container');
+
+        // Draw clock ticks
+        function drawTicks() {
+            for (let i = 0; i < 60; i++) {
+                if (i % 15 === 0) continue; // Skip 12, 3, 6, 9 as they have numbers
+                const tick = document.createElement('div');
+                tick.className = 'absolute w-1 bg-saffron-300 rounded-full';
+                tick.style.height = i % 5 === 0 ? '12px' : '6px';
+                tick.style.left = '50%';
+                tick.style.marginLeft = '-2px';
+                tick.style.top = '10px';
+                tick.style.transformOrigin = `50% ${clockContainer.offsetWidth / 2 - 10}px`;
+                tick.style.transform = `rotate(${i * 6}deg)`;
+                ticksContainer.appendChild(tick);
+            }
+        }
+
+        // Initialize display
+        function updateDisplay() {
+            const data = timeData[currentIndex];
+            
+            // Parse time for clock hands
+            const [hoursStr, minutesStr] = data.hour.split(':');
+            let hours = parseInt(hoursStr, 10);
+            const minutes = parseInt(minutesStr, 10);
+            
+            // Handle 12 hour format for angles
+            if (hours === 12) hours = 0;
+
+            // Calculate angles
+            // Minute hand moves 6 degrees per minute
+            const minuteAngle = minutes * 6;
+            // Hour hand moves 30 degrees per hour + 0.5 degrees per minute
+            const hourAngle = (hours * 30) + (minutes * 0.5);
+
+            // Apply rotations
+            hourHand.style.transform = `rotate(${hourAngle}deg)`;
+            minuteHand.style.transform = `rotate(${minuteAngle}deg)`;
+
+            // Update text fields
+            digitalTime.textContent = data.hour;
+            englishDesc.textContent = data.english;
+            sanskritText.textContent = data.sanskrit;
+        }
+
+        // Navigation controls
+        document.getElementById('next-btn').addEventListener('click', () => {
+            currentIndex = (currentIndex + 1) % timeData.length;
+            updateDisplay();
+        });
+
+        document.getElementById('prev-btn').addEventListener('click', () => {
+            currentIndex = (currentIndex - 1 + timeData.length) % timeData.length;
+            updateDisplay();
+        });
+
+        // Interactive Clock Face (Click to snap minute)
+        clockContainer.addEventListener('mousedown', handleClockInteraction);
+        clockContainer.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent scrolling
+            handleClockInteraction(e.touches[0]);
+        });
+
+        function handleClockInteraction(e) {
+            const rect = clockContainer.getBoundingClientRect();
+            // Calculate center of the clock
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            // Calculate angle from center to click position
+            const x = e.clientX - centerX;
+            const y = e.clientY - centerY;
+            
+            // Math.atan2 returns angle from X axis. We adjust so 12 o'clock is 0 degrees.
+            let angle = Math.atan2(y, x) * (180 / Math.PI) + 90;
+            if (angle < 0) angle += 360;
+
+            // Determine nearest 15-minute mark (0, 90, 180, 270 degrees)
+            const clickedMinute = Math.round(angle / 6);
+            let snappedMinute = Math.round(clickedMinute / 15) * 15;
+            if (snappedMinute === 60) snappedMinute = 0;
+
+            // Map minute to offset index (0=0min, 1=15min, 2=30min, 3=45min)
+            const minuteOffset = snappedMinute / 15;
+
+            // Find current hour block (each hour has 4 entries)
+            const currentHourBlockStart = Math.floor(currentIndex / 4) * 4;
+
+            // Update index within the current hour
+            currentIndex = currentHourBlockStart + minuteOffset;
+            updateDisplay();
+        }
+
+        // Setup on load
+        window.onload = () => {
+            drawTicks();
+            updateDisplay();
+            
+            // Redraw ticks if window resizes to maintain proportion
+            window.addEventListener('resize', () => {
+                ticksContainer.innerHTML = '';
+                drawTicks();
+            });
+        };
+
+    </script>
+</body>
+</html>
+
